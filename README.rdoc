@@ -28,8 +28,11 @@ Important files:
 organizar este readme
 
 git push
+
 cap deploy:setup
+
 #ir ao servidor criar a pasta db em shared
+
 cap deploy:cold
 
 Fazer o que quero

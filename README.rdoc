@@ -20,12 +20,22 @@ Important files:
   #config/unicorn.rb
   #config/nginx.conf
   #unicorn_init.sh
-  #config/database.example.yml
+  #config/database.example.yml #este vai ser copiado para shared/config e é o k vai ser usado.
 
   #config/deploy.rb
   #Capfile
 
 organizar este readme
+
+git push
+cap deploy:setup
+#ir ao servidor criar a pasta db em shared
+cap deploy:cold
+
+Fazer o que quero
+
+cap deploy
+
 
 What each command does:
 

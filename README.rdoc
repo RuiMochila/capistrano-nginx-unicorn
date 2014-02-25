@@ -1,11 +1,13 @@
 == Capistrano Deploy w/ Nginx and Unicorn
 
+Organizar melhor este reade, juntar o que se tem de fazer projecto a projecto, porque do lado do server já faço eu.
+
 This is a sample project featuring the important points when preparing a Rails app for capistrano deployment with nginx and unicorn.
 
 Despite this, the nginx and unicorn configuration are as simple as possible, you should read their documentation in order to improve unicorn config, especialy the fork blocks.
 
 
-Important file:
+Important files:
   
   Gemfile
     #Or other
@@ -15,7 +17,13 @@ Important file:
     gem 'capistrano', '2.15.5'
     gem 'rvm-capistrano'
 
-  
+  #config/unicorn.rb
+  #config/nginx.conf
+  #unicorn_init.sh
+  #config/database.example.yml
+
+  #config/deploy.rb
+  #Capfile
 
 organizar este readme
 
@@ -26,48 +34,30 @@ What each command does:
 
 
   mkdir -p 
-
     /home/inspiring/apps/appname 
-
     /home/inspiring/apps/appname/releases
-
     /home/inspiring/apps/appname/shared
-
     /home/inspiring/apps/appname/shared/system
-
     /home/inspiring/apps/appname/shared/log
-
     /home/inspiring/apps/appname/shared/pids
-
 
   chmod g+w 
-
     /home/inspiring/apps/appname 
-
     /home/inspiring/apps/appname/releases 
-
     /home/inspiring/apps/appname/shared 
-
     /home/inspiring/apps/appname/shared/system 
-
     /home/inspiring/apps/appname/shared/log 
-
     /home/inspiring/apps/appname/shared/pids
-
 
 (setup_config)
 
   sudo -p 'sudo password: ' 
-
     ln -nfs /home/inspiring/apps/appname/current/config/nginx.conf /etc/nginx/sites-enabled/appname
 
   sudo -p 'sudo password: ' 
-
     ln -nfs /home/inspiring/apps/appname/current/config/unicorn_init.sh /etc/init.d/unicorn_appname
 
-
   mkdir -p /home/inspiring/apps/appname/shared/config
-
 
   sftp upload #<StringIO:0x007ffe830815b8> -> /home/inspiring/apps/appname/shared/config/database.yml
 
@@ -77,39 +67,24 @@ What each command does:
 == cap deploy:cold
 
 `deploy:cold'
-
 `deploy:update'
-
 `deploy:update_code'
 
 updating the cached checkout on all servers
 
-
   git ls-remote git@github.com:username/appname.git master
   
-
   if [ -d /home/inspiring/apps/appname/shared/cached-copy ]; then 
-  
     cd /home/inspiring/apps/appname/shared/cached-copy && 
-  
     git fetch -q origin && 
-  
     git fetch --tags -q origin && 
-  
     git reset -q --hard f5c1a86903e5b7154af508c64092755adea728de && 
-  
     git clean -q -d -x -f; 
-  
   else 
-  
     git clone -q -b master git@github.com:knuxus/appname.git /home/inspiring/apps/appname/shared/cached-copy && 
-  
     cd /home/inspiring/apps/appname/shared/cached-copy && 
-  
     git checkout -q -b deploy f5c1a86903e5b7154af508c64092755adea728de; 
-  
   fi
-
 
 copying the cached version to /home/inspiring/apps/appname/releases/20140224234058
   
@@ -118,93 +93,66 @@ copying the cached version to /home/inspiring/apps/appname/releases/201402242340
     
     
 `deploy:finalize_update'
-
 `deploy:assets:symlink'
-
+  
   rm -rf /home/inspiring/apps/appname/releases/20140224234058/public/assets && 
-  
   mkdir -p /home/inspiring/apps/appname/releases/20140224234058/public && 
-  
   mkdir -p /home/inspiring/apps/appname/shared/assets && 
-  
   ln -s /home/inspiring/apps/appname/shared/assets /home/inspiring/apps/appname/releases/20140224234058/public/assets
 
 
 `bundle:install'
 
   cd /home/inspiring/apps/appname/releases/20140224234058 && 
-  
   bundle install --gemfile /home/inspiring/apps/appname/releases/20140224234058/Gemfile --path /home/inspiring/apps/appname/shared/bundle --deployment --quiet --without development test
-    
-    
+      
   chmod -R -- g+w /home/inspiring/apps/appname/releases/20140224234058 && 
-  
   rm -rf -- /home/inspiring/apps/appname/releases/20140224234058/public/system && 
-  
   mkdir -p -- /home/inspiring/apps/appname/releases/20140224234058/public/ && 
-  
   ln -s -- /home/inspiring/apps/appname/shared/system /home/inspiring/apps/appname/releases/20140224234058/public/system && 
-  
   rm -rf -- /home/inspiring/apps/appname/releases/20140224234058/log && 
-  
   ln -s -- /home/inspiring/apps/appname/shared/log /home/inspiring/apps/appname/releases/20140224234058/log && 
-  
   rm -rf -- /home/inspiring/apps/appname/releases/20140224234058/tmp/pids && 
-  
   mkdir -p -- /home/inspiring/apps/appname/releases/20140224234058/tmp/ && 
-  
   ln -s -- /home/inspiring/apps/appname/shared/pids /home/inspiring/apps/appname/releases/20140224234058/tmp/pids
   
 
 `deploy:finalize_update'
-
 `deploy:symlink_config'
 
   ln -nfs /home/inspiring/apps/appname/shared/config/database.yml /home/inspiring/apps/appname/releases/20140224234058/config/database.yml
 
-
 `deploy:update_code'
-
 `deploy:assets:precompile'
-
 `deploy:assets:precompile'
-
 `deploy:assets:update_asset_mtimes'
 
-
   [ -e /home/inspiring/apps/appname/shared/assets/manifest* ] && 
-
   cat /home/inspiring/apps/appname/shared/assets/manifest* || echo
-
   ** Updating mtimes for ~152 assets...
 
   scp upload #<StringIO:0x007fc5523267b0> -> /home/inspiring/apps/appname/TOUCH_ASSETS
 
   cat /home/inspiring/apps/appname/TOUCH_ASSETS | while read asset; do touch -c -- \"$asset\"; done && rm -f -- /home/inspiring/apps/appname/TOUCH_ASSETS
 
-
   cd -- /home/inspiring/apps/appname/releases/20140224234058 && RAILS_ENV=production RAILS_GROUPS=assets bundle exec rake assets:precompile
-
 
   ls -1 /home/inspiring/apps/appname/shared/assets/manifest* | wc -l
 
-
   ls /home/inspiring/apps/appname/shared/assets/manifest*
 
-
   ls -x /home/inspiring/apps/appname/releases
-    
-  
+      
   cp -- /home/inspiring/apps/appname/shared/assets/manifest.yml /home/inspiring/apps/appname/releases/20140224234058/assets_manifest.yml
   
 
 `deploy:create_symlink'
-
+  
   rm -f /home/inspiring/apps/appname/current &&  
   ln -s /home/inspiring/apps/appname/releases/20140224234058 /home/inspiring/apps/appname/current
 
 
-  `deploy:migrate'
+`deploy:migrate'
   
   cd /home/inspiring/apps/appname/releases/20140224234058 && bundle exec rake RAILS_ENV=production  db:migrate
 
@@ -214,146 +162,98 @@ copying the cached version to /home/inspiring/apps/appname/releases/201402242340
   /etc/init.d/unicorn_appname start
 
 
-
 == cap deploy
 
 
 `deploy'
-
 `deploy:check_revision'
-
 `deploy:update'
-
 `deploy:update_code'
-
 
   git ls-remote git@github.com:knuxus/appname.git master
     
-  if [ -d /home/inspiring/apps/appname/shared/cached-copy ]; then 
-    
+  if [ -d /home/inspiring/apps/appname/shared/cached-copy ]; then     
     cd /home/inspiring/apps/appname/shared/cached-copy && 
-    
     git fetch -q origin && 
-    
     git fetch --tags -q origin && 
-    
     git reset -q --hard f5c1a86903e5b7154af508c64092755adea728de && 
-    
     git clean -q -d -x -f; 
-  
   else 
-    
     git clone -q -b master git@github.com:knuxus/appname.git /home/inspiring/apps/appname/shared/cached-copy && 
-    
     cd /home/inspiring/apps/appname/shared/cached-copy && 
-    
     git checkout -q -b deploy f5c1a86903e5b7154af508c64092755adea728de; 
-  
   fi
   
-
 copying the cached version to /home/inspiring/apps/appname/releases/20140224234404
 
   cp -RPp /home/inspiring/apps/appname/shared/cached-copy /home/inspiring/apps/appname/releases/20140224234404 && 
-
   (echo f5c1a86903e5b7154af508c64092755adea728de > /home/inspiring/apps/appname/releases/20140224234404/REVISION)
 
   
 `deploy:finalize_update'
-
 `deploy:assets:symlink'
 
   rm -rf /home/inspiring/apps/appname/releases/20140224234404/public/assets && 
-
   mkdir -p /home/inspiring/apps/appname/releases/20140224234404/public && 
-
   mkdir -p /home/inspiring/apps/appname/shared/assets && 
-
   ln -s /home/inspiring/apps/appname/shared/assets /home/inspiring/apps/appname/releases/20140224234404/public/assets
     
-    
-    
+
 `bundle:install'
 
   cd /home/inspiring/apps/appname/releases/20140224234404 && 
-
   bundle install --gemfile /home/inspiring/apps/appname/releases/20140224234404/Gemfile --path /home/inspiring/apps/appname/shared/bundle --deployment --quiet --without development test
 
-  
   chmod -R -- g+w /home/inspiring/apps/appname/releases/20140224234404 && 
-
   rm -rf -- /home/inspiring/apps/appname/releases/20140224234404/public/system && 
-
   mkdir -p -- /home/inspiring/apps/appname/releases/20140224234404/public/ && 
-
   ln -s -- /home/inspiring/apps/appname/shared/system /home/inspiring/apps/appname/releases/20140224234404/public/system && 
-
   rm -rf -- /home/inspiring/apps/appname/releases/20140224234404/log && 
-
   ln -s -- /home/inspiring/apps/appname/shared/log /home/inspiring/apps/appname/releases/20140224234404/log && 
-
   rm -rf -- /home/inspiring/apps/appname/releases/20140224234404/tmp/pids && 
-
   mkdir -p -- /home/inspiring/apps/appname/releases/20140224234404/tmp/ && 
-
   ln -s -- /home/inspiring/apps/appname/shared/pids /home/inspiring/apps/appname/releases/20140224234404/tmp/pids
 
 
 `deploy:finalize_update'
-
 `deploy:symlink_config'
 
   ln -nfs /home/inspiring/apps/appname/shared/config/database.yml /home/inspiring/apps/appname/releases/20140224234404/config/database.yml
   
 `deploy:update_code'
-
 `deploy:assets:precompile'
-
 `deploy:assets:update_asset_mtimes'
 
   [ -e /home/inspiring/apps/appname/shared/assets/manifest* ] && 
-
   cat /home/inspiring/apps/appname/shared/assets/manifest* || echo
-
   
   ** scp upload #<StringIO:0x007fb27c900890> -> /home/inspiring/apps/appname/TOUCH_ASSETS
 
-
   cat /home/inspiring/apps/appname/TOUCH_ASSETS | while read asset; do touch -c -- \"$asset\"; done && 
-
   rm -f -- /home/inspiring/apps/appname/TOUCH_ASSETS
 
-
-  cd -- /home/inspiring/apps/appname/releases/20140224234404 && 
-  
+  cd -- /home/inspiring/apps/appname/releases/20140224234404 &&   
   RAILS_ENV=production RAILS_GROUPS=assets bundle exec rake assets:precompile
 
-  
   ls -1 /home/inspiring/apps/appname/shared/assets/manifest* | wc -l
-
     
   ls /home/inspiring/apps/appname/shared/assets/manifest*
   
-
   ls -x /home/inspiring/apps/appname/releases
   
-
   cp -- /home/inspiring/apps/appname/shared/assets/manifest.yml /home/inspiring/apps/appname/releases/20140224234404/assets_manifest.yml
 
 
 `deploy:create_symlink'
 
   rm -f /home/inspiring/apps/appname/current && 
-
   ln -s /home/inspiring/apps/appname/releases/20140224234404 /home/inspiring/apps/appname/current
 
-
 `deploy:restart'
-
+  
   /etc/init.d/unicorn_appname restart
 
 `deploy'
-  
 `deploy:cleanup'
   
   ls -1dt /home/inspiring/apps/appname/releases/* | tail -n +6 |  xargs rm -rf
@@ -361,31 +261,21 @@ copying the cached version to /home/inspiring/apps/appname/releases/201402242344
 `deploy:assets:clean_expired'
   
   for manifest in /home/inspiring/apps/appname/releases/*/assets_manifest.*; do 
-
     cat -- \"$manifest\" 2> /dev/null && printf ':::' || true; 
-
   done
 
-  
 ** Writing required assets to /home/inspiring/apps/appname/REQUIRED_ASSETS...
 
 ** scp upload #<StringIO:0x007fb27d6f8da8> -> /home/inspiring/apps/appname/REQUIRED_ASSETS
-
  
 ** Removing assets that haven't been deployed for 10080 minutes...
 
   cd -- /home/inspiring/apps/appname/ && 
-
   LC_COLLATE=C sort REQUIRED_ASSETS -o REQUIRED_ASSETS && 
-
   cd -- /home/inspiring/apps/appname/shared/assets/ && 
-
   for f in $( find * -mmin +10080 -type f | LC_COLLATE=C sort | LC_COLLATE=C comm -23 -- - /home/inspiring/apps/appname/REQUIRED_ASSETS ); do 
-
     echo \"Removing unneeded asset: $f\"; 
-  
     rm -f -- \"$f\"; 
-
   done; 
 
   rm -f -- /home/inspiring/apps/appname/REQUIRED_ASSETS

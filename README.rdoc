@@ -35,7 +35,12 @@ cap deploy:setup
 
 cap deploy:cold
 
-Fazer o que quero
+#No server
+sudo service nginx restart
+
+sudo update-rc.d -f unicorn_appname defaults
+
+# Projecto - Fazer o que quero e sempre 
 
 cap deploy
 

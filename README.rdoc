@@ -99,7 +99,7 @@ updating the cached checkout on all servers
     git reset -q --hard f5c1a86903e5b7154af508c64092755adea728de && 
     git clean -q -d -x -f; 
   else 
-    git clone -q -b master git@github.com:knuxus/appname.git /home/inspiring/apps/appname/shared/cached-copy && 
+    git clone -q -b master git@github.com:username/appname.git /home/inspiring/apps/appname/shared/cached-copy && 
     cd /home/inspiring/apps/appname/shared/cached-copy && 
     git checkout -q -b deploy f5c1a86903e5b7154af508c64092755adea728de; 
   fi
@@ -188,7 +188,7 @@ copying the cached version to /home/inspiring/apps/appname/releases/201402242340
 `deploy:update'
 `deploy:update_code'
 
-  git ls-remote git@github.com:knuxus/appname.git master
+  git ls-remote git@github.com:username/appname.git master
     
   if [ -d /home/inspiring/apps/appname/shared/cached-copy ]; then     
     cd /home/inspiring/apps/appname/shared/cached-copy && 
@@ -197,7 +197,7 @@ copying the cached version to /home/inspiring/apps/appname/releases/201402242340
     git reset -q --hard f5c1a86903e5b7154af508c64092755adea728de && 
     git clean -q -d -x -f; 
   else 
-    git clone -q -b master git@github.com:knuxus/appname.git /home/inspiring/apps/appname/shared/cached-copy && 
+    git clone -q -b master git@github.com:username/appname.git /home/inspiring/apps/appname/shared/cached-copy && 
     cd /home/inspiring/apps/appname/shared/cached-copy && 
     git checkout -q -b deploy f5c1a86903e5b7154af508c64092755adea728de; 
   fi
